@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 export default function Home() {
   return (
     <>
@@ -182,30 +180,6 @@ export default function Home() {
           </form>
         </div>
       </div>
-
-      <script>
-        // Initialize Lucide icons lucide.createIcons(); // Simple modal
-        functionality const modal = document.getElementById('modal'); const
-        addButton = document.querySelector('button'); const cancelButton =
-        document.querySelector('button[type="button"]');
-        {/* addButton.addEventListener('click', () => {
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        });
-        
-        cancelButton.addEventListener('click', () => {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        });
-        
-        // Close modal when clicking outside
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
-        }); */}
-      </script>
     </>
   );
 }
