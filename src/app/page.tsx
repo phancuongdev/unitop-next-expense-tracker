@@ -1,185 +1,432 @@
-export default function Home() {
+"use client";
+
+import type React from "react";
+
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Trash2,
+  Plus,
+  DollarSign,
+  TrendingDown,
+  TrendingUp,
+  Wallet,
+  ArrowUpCircle,
+  ArrowDownCircle,
+} from "lucide-react";
+
+interface Transaction {
+  id: number;
+  amount: number;
+  description: string;
+  category: string;
+  date: string;
+  type: "income" | "expense";
+}
+
+const expenseCategories = [
+  "Ăn uống",
+  "Di chuyển",
+  "Mua sắm",
+  "Giải trí",
+  "Y tế",
+  "Giáo dục",
+  "Khác",
+];
+const incomeCategories = [
+  "Lương",
+  "Thưởng",
+  "Đầu tư",
+  "Bán hàng",
+  "Freelance",
+  "Khác",
+];
+
+export default function ExpenseTracker() {
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    amount: "",
+    description: "",
+    category: "",
+    type: "expense" as "income" | "expense",
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!formData.amount || !formData.description || !formData.category) {
+      return;
+    }
+
+    const newTransaction: Transaction = {
+      id: Date.now(),
+      amount: Number.parseFloat(formData.amount),
+      description: formData.description,
+      category: formData.category,
+      type: formData.type,
+      date: new Date().toLocaleDateString("vi-VN"),
+    };
+
+    setTransactions([newTransaction, ...transactions]);
+    setFormData({ amount: "", description: "", category: "", type: "expense" });
+    setIsDialogOpen(false);
+  };
+
+  const deleteTransaction = (id: number) => {
+    setTransactions(
+      transactions.filter((transaction) => transaction.id !== id)
+    );
+  };
+
+  const totalIncome = transactions
+    .filter((t) => t.type === "income")
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+
+  const totalExpenses = transactions
+    .filter((t) => t.type === "expense")
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+
+  const balance = totalIncome - totalExpenses;
+
   return (
-    <>
+    <div className="min-h-screen bg-background p-4">
       <div className="max-w-4xl mx-auto">
-        {/* <!-- Header --> */}
+        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
             Quản lý Thu Chi
           </h1>
-          <p className="text-gray-600">
+          <p className="text-muted-foreground">
             Theo dõi thu nhập và chi tiêu hàng ngày
           </p>
         </div>
 
-        {/* <!-- Summary Cards --> */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {/* <!-- Thu nhập Card --> */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-600">Thu nhập</h3>
-              <i
-                data-lucide="trending-up"
-                className="w-4 h-4 text-green-600"
-              ></i>
-            </div>
-            <div className="text-2xl font-bold text-green-600">+0 đ</div>
-          </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Thu nhập</CardTitle>
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                +{totalIncome.toLocaleString("vi-VN")} đ
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* <!-- Chi tiêu Card --> */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-600">Chi tiêu</h3>
-              <i
-                data-lucide="trending-down"
-                className="w-4 h-4 text-red-600"
-              ></i>
-            </div>
-            <div className="text-2xl font-bold text-red-600">-0 đ</div>
-          </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Chi tiêu</CardTitle>
+              <TrendingDown className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                -{totalExpenses.toLocaleString("vi-VN")} đ
+              </div>
+            </CardContent>
+          </Card>
 
-          {/* <!-- Số dư Card --> */}
-          <div className="bg-white rounded-lg shadow-sm border p-6">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium text-gray-600">Số dư</h3>
-              <i data-lucide="wallet" className="w-4 h-4 text-blue-600"></i>
-            </div>
-            <div className="text-2xl font-bold text-blue-600">0 đ</div>
-          </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Số dư</CardTitle>
+              <Wallet className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div
+                className={`text-2xl font-bold ${
+                  balance >= 0 ? "text-blue-600" : "text-red-600"
+                }`}
+              >
+                {balance.toLocaleString("vi-VN")} đ
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        {/* <!-- Add Transaction Button --> */}
+        {/* Add Transaction Button */}
         <div className="mb-6">
-          <button className="bg-green-800 text-white px-4 py-2 rounded-md hover:bg-green-900 flex items-center gap-2 cursor-pointer">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-plus h-4 w-4 mr-2"
-            >
-              <path d="M5 12h14"></path>
-              <path d="M12 5v14"></path>
-            </svg>
-            Thêm giao dịch
-          </button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full md:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                Thêm giao dịch
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Thêm giao dịch mới</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Label htmlFor="type">Loại giao dịch</Label>
+                  <Select
+                    value={formData.type}
+                    onValueChange={(value: "income" | "expense") =>
+                      setFormData({ ...formData, type: value, category: "" })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="income">Thu nhập</SelectItem>
+                      <SelectItem value="expense">Chi tiêu</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="amount">Số tiền</Label>
+                  <Input
+                    id="amount"
+                    type="number"
+                    placeholder="0"
+                    value={formData.amount}
+                    onChange={(e) =>
+                      setFormData({ ...formData, amount: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="description">Mô tả</Label>
+                  <Input
+                    id="description"
+                    placeholder={
+                      formData.type === "income"
+                        ? "Nhập mô tả thu nhập"
+                        : "Nhập mô tả chi tiêu"
+                    }
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="category">Danh mục</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) =>
+                      setFormData({ ...formData, category: value })
+                    }
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn danh mục" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(formData.type === "income"
+                        ? incomeCategories
+                        : expenseCategories
+                      ).map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex gap-2">
+                  <Button type="submit" className="flex-1">
+                    Thêm
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                    className="flex-1"
+                  >
+                    Hủy
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
         </div>
 
-        {/* <!-- Tabs --> */}
-        <div className="bg-white rounded-lg shadow-sm border">
-          {/* <!-- Tab Headers --> */}
-          <div className="border-b">
-            <div className="flex">
-              <button className="px-6 py-3 text-sm font-medium border-b-2 border-gray-900 text-gray-900">
-                Tất cả
-              </button>
-              <button className="px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-900">
-                Thu nhập
-              </button>
-              <button className="px-6 py-3 text-sm font-medium text-gray-600 hover:text-gray-900">
-                Chi tiêu
-              </button>
-            </div>
-          </div>
+        <Tabs defaultValue="all" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="all">Tất cả</TabsTrigger>
+            <TabsTrigger value="income">Thu nhập</TabsTrigger>
+            <TabsTrigger value="expense">Chi tiêu</TabsTrigger>
+          </TabsList>
 
-          {/* <!-- Tab Content --> */}
-          <div className="p-6">
-            {/* <!-- Empty State --> */}
-            <div className="flex flex-col items-center justify-center py-12">
-              <i
-                data-lucide="dollar-sign"
-                className="w-12 h-12 text-gray-400 mb-4"
-              ></i>
-              <p className="text-gray-600 text-center">
-                Chưa có giao dịch nào. Hãy thêm giao dịch đầu tiên của bạn!
-              </p>
-            </div>
-          </div>
-        </div>
+          <TabsContent value="all" className="space-y-4">
+            {transactions.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <DollarSign className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground text-center">
+                    Chưa có giao dịch nào. Hãy thêm giao dịch đầu tiên của bạn!
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              transactions.map((transaction) => (
+                <Card key={transaction.id}>
+                  <CardContent className="flex items-center justify-between p-4">
+                    <div className="flex items-center gap-3">
+                      {transaction.type === "income" ? (
+                        <ArrowUpCircle className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <ArrowDownCircle className="h-5 w-5 text-red-600" />
+                      )}
+                      <div>
+                        <h3 className="font-medium text-foreground">
+                          {transaction.description}
+                        </h3>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <span>{transaction.category}</span>
+                          <span>•</span>
+                          <span>{transaction.date}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className={`text-lg font-semibold ${
+                          transaction.type === "income"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {transaction.type === "income" ? "+" : "-"}
+                        {transaction.amount.toLocaleString("vi-VN")} đ
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteTransaction(transaction.id)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="income" className="space-y-4">
+            {transactions.filter((t) => t.type === "income").length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <TrendingUp className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground text-center">
+                    Chưa có thu nhập nào được ghi nhận.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              transactions
+                .filter((t) => t.type === "income")
+                .map((transaction) => (
+                  <Card key={transaction.id}>
+                    <CardContent className="flex items-center justify-between p-4">
+                      <div className="flex items-center gap-3">
+                        <ArrowUpCircle className="h-5 w-5 text-green-600" />
+                        <div>
+                          <h3 className="font-medium text-foreground">
+                            {transaction.description}
+                          </h3>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>{transaction.category}</span>
+                            <span>•</span>
+                            <span>{transaction.date}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg font-semibold text-green-600">
+                          +{transaction.amount.toLocaleString("vi-VN")} đ
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteTransaction(transaction.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="expense" className="space-y-4">
+            {transactions.filter((t) => t.type === "expense").length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <TrendingDown className="h-12 w-12 text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground text-center">
+                    Chưa có chi tiêu nào được ghi nhận.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : (
+              transactions
+                .filter((t) => t.type === "expense")
+                .map((transaction) => (
+                  <Card key={transaction.id}>
+                    <CardContent className="flex items-center justify-between p-4">
+                      <div className="flex items-center gap-3">
+                        <ArrowDownCircle className="h-5 w-5 text-red-600" />
+                        <div>
+                          <h3 className="font-medium text-foreground">
+                            {transaction.description}
+                          </h3>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>{transaction.category}</span>
+                            <span>•</span>
+                            <span>{transaction.date}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg font-semibold text-red-600">
+                          -{transaction.amount.toLocaleString("vi-VN")} đ
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteTransaction(transaction.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
-
-      {/* <!-- Modal Overlay (Hidden by default) --> */}
-      <div
-        id="modal"
-        className="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4"
-      >
-        <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
-          <h2 className="text-lg font-semibold mb-4">Thêm giao dịch mới</h2>
-
-          <form className="space-y-4">
-            {/* <!-- Loại giao dịch --> */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Loại giao dịch
-              </label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900">
-                <option value="expense">Chi tiêu</option>
-                <option value="income">Thu nhập</option>
-              </select>
-            </div>
-
-            {/* <!-- Số tiền --> */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Số tiền
-              </label>
-              <input
-                type="number"
-                placeholder="0"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900"
-              />
-            </div>
-            {/* <!-- Mô tả --> */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mô tả
-              </label>
-              <input
-                type="text"
-                placeholder="Nhập mô tả chi tiêu"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900"
-              />
-            </div>
-            {/* <!-- Danh mục --> */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Danh mục
-              </label>
-              <select className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-900">
-                <option value="">Chọn danh mục</option>
-                <option value="food">Ăn uống</option>
-                <option value="transport">Di chuyển</option>
-                <option value="shopping">Mua sắm</option>
-                <option value="entertainment">Giải trí</option>
-                <option value="health">Y tế</option>
-                <option value="education">Giáo dục</option>
-                <option value="other">Khác</option>
-              </select>
-            </div>
-
-            {/* <!-- Buttons --> */}
-            <div className="flex gap-2 pt-4">
-              <button
-                type="submit"
-                className="flex-1 bg-gray-900 text-white py-2 rounded-md hover:bg-gray-800"
-              >
-                Thêm
-              </button>
-              <button
-                type="button"
-                className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-md hover:bg-gray-50"
-              >
-                Hủy
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </>
+    </div>
   );
 }
